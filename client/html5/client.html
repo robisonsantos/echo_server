@@ -2,60 +2,60 @@
 <html>
   <head>
     <script type="text/javascript">
-      function WebSocketTest()
-{
-  if ("WebSocket" in window)
-  {
-    alert("WebSocket is supported by your Browser!");
-    // Let us open a web socket
-    var ws = new WebSocket("ws://localhost:8888/echo");
-    ws.onopen = function()
-    {
-      // Web Socket is connected, send data using send()
-      var messagesToSend = ["This", "is", "a", "websocket","through", "tcp", "test", "bye"];
 
-      for(var i = 0; i < messagesToSend.length; i++)
-      {
-         ws.send(messagesToSend[i]);
-      }
+    var ws = ""; /* So I can have a reference */
+
+    function connect() {
+      ws = new WebSocket("ws://localhost:8888/echo");
+
+      ws.onopen = connected;
+      ws.onmessage = get_message;
+      ws.onclose = disconnected;
     };
 
-    ws.onmessage = function (evt) 
-    { 
+    function connected() {
+      var resultDiv = document.getElementById("result");
+      var textAndButton = 'Sending "bye" will disconnect.<br/>Enter text: <input type="text" name="user_input" id="input"/> <input type="button" onclick="send_message()" value="Send"/>'
+      resultDiv.innerHTML = textAndButton;
+
+      var resultList = document.createElement("ul");
+      resultList.setAttribute("id", "result-list");
+      resultDiv.appendChild(resultList);
+
+      var mainDiv = document.getElementById("echo_test");
+      var connectButton = document.getElementById("connect-button");
+      mainDiv.removeChild(connectButton);
+
+    };
+
+    function disconnected() {
+      alert("Connection is closed..."); 
+    };
+
+    function get_message(event) {
       var reader = new FileReader();
       reader.addEventListener("loadend", function() {
           var newItem = document.createElement('li');
           newItem.innerHTML = reader.result;
-
-          document.getElementById("result").appendChild(newItem);
+          document.getElementById("result-list").appendChild(newItem);
       });
-      reader.readAsText(evt.data);
-
+      reader.readAsText(event.data);
     };
 
-    ws.onclose = function()
-    { 
-      // websocket is closed.
-      alert("Connection is closed..."); 
+    function send_message() {
+      var textArea = document.getElementById("input");
+      var message = textArea.value;
+      textArea.value = "";
+
+      ws.send(message);
     };
-  }
-  else
-  {
-    // The browser doesn't support WebSocket
-    alert("WebSocket NOT supported by your Browser!");
-  }
-}
 </script>
 </head>
 <body>
-  <div id="sse">
-    <a href="javascript:WebSocketTest()">Run WebSocket</a>
-  </div>
-
-  <div>
-    <ul id="result">
-      
-    </ul>
+  <div id="echo_test">
+    <input type="button" onclick="connect()" value="Connect" id="connect-button" />
+    <div id="result">
+    </div>
   </div>
 </body>
 </html>
